@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_1rl97ju" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.5.0">
+  <bpmn:message id="Message_1mrrrp1" name="helloWorld" />
+  <bpmn:error id="Error_0n9lm0b" name="AgentTaskError" errorCode="500" camunda:errorMessage="Could not run agent task" />
+  <bpmn:error id="Error_1umh72v" name="Error_1hpqb1e" errorCode="400" camunda:errorMessage="Agent task error" />
+  <bpmn:error id="Error_0e7npck" name="rgg" errorCode="200" camunda:errorMessage="Hello!" />
+  <bpmn:process id="Process_0phn5wq" name="Flow and Agent HelloWorld script" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1" name="Start">
+      <bpmn:outgoing>Flow_0rvbv7m</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="helloWorld" name="Run Hello World on Onify Agent">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="method">post</camunda:inputParameter>
+            <camunda:inputParameter name="query">
+              <camunda:map>
+                <camunda:entry key="tag">agent</camunda:entry>
+                <camunda:entry key="async">${true}</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+            <camunda:inputParameter name="url">/admin/agents/task/HelloWorld</camunda:inputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>onifyElevatedApiRequest</camunda:connectorId>
+        </camunda:connector>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0rvbv7m</bpmn:incoming>
+      <bpmn:outgoing>Flow_0doxe25</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_08g1ijs" name="Check status from script" default="Flow_1us3mke">
+      <bpmn:incoming>Flow_19ad1s0</bpmn:incoming>
+      <bpmn:outgoing>Flow_0p50qpa</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1us3mke</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="Event_0jgwpvb" name="Agent task error">
+      <bpmn:incoming>from-agent-error</bpmn:incoming>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_0wqfw12" errorRef="Error_1umh72v" />
+    </bpmn:endEvent>
+    <bpmn:endEvent id="Event_0pqwb16" name="Success">
+      <bpmn:incoming>Flow_1847r72</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:intermediateCatchEvent id="Event_0y1j1kj" name="Wait for agent task to finish">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:outputParameter name="commandResult">${content.output.result}</camunda:outputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0doxe25</bpmn:incoming>
+      <bpmn:outgoing>Flow_19ad1s0</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_0u760m6" messageRef="Message_1mrrrp1" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:endEvent id="Event_0c49yvo" name="Script error">
+      <bpmn:incoming>Flow_1us3mke</bpmn:incoming>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_142wr41" errorRef="Error_0e7npck" />
+    </bpmn:endEvent>
+    <bpmn:boundaryEvent id="Event_0tihfvd" name="Error starting agent task" attachedToRef="helloWorld">
+      <bpmn:outgoing>from-agent-error</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_1cku5yt" />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_0doxe25" sourceRef="helloWorld" targetRef="Event_0y1j1kj" />
+    <bpmn:sequenceFlow id="Flow_0rvbv7m" sourceRef="StartEvent_1" targetRef="helloWorld" />
+    <bpmn:sequenceFlow id="from-agent-error" sourceRef="Event_0tihfvd" targetRef="Event_0jgwpvb" />
+    <bpmn:sequenceFlow id="Flow_19ad1s0" sourceRef="Event_0y1j1kj" targetRef="Gateway_08g1ijs" />
+    <bpmn:sequenceFlow id="Flow_0p50qpa" name="Statuscode &#60; 400" sourceRef="Gateway_08g1ijs" targetRef="Activity_0ue8hyo">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" language="javascript">next(null, environment.output.commandResult.statuscode &lt; 400);</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1us3mke" name="Statuscode &#62; 399" sourceRef="Gateway_08g1ijs" targetRef="Event_0c49yvo" />
+    <bpmn:sequenceFlow id="Flow_1847r72" sourceRef="Activity_0ue8hyo" targetRef="Event_0pqwb16" />
+    <bpmn:scriptTask id="Activity_0ue8hyo" name="Print Onify Agent result" scriptFormat="javascript">
+      <bpmn:incoming>Flow_0p50qpa</bpmn:incoming>
+      <bpmn:outgoing>Flow_1847r72</bpmn:outgoing>
+      <bpmn:script>console.log(environment.output.commandResult);
+next();</bpmn:script>
+    </bpmn:scriptTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_0phn5wq">
+      <bpmndi:BPMNEdge id="Flow_1us3mke_di" bpmnElement="Flow_1us3mke">
+        <di:waypoint x="570" y="142" />
+        <di:waypoint x="570" y="322" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="577" y="221" width="86" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0p50qpa_di" bpmnElement="Flow_0p50qpa">
+        <di:waypoint x="595" y="117" />
+        <di:waypoint x="732" y="117" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="602.0000000000001" y="99" width="86" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_19ad1s0_di" bpmnElement="Flow_19ad1s0">
+        <di:waypoint x="468" y="117" />
+        <di:waypoint x="545" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_09i488b_di" bpmnElement="from-agent-error">
+        <di:waypoint x="310" y="175" />
+        <di:waypoint x="310" y="322" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0rvbv7m_di" bpmnElement="Flow_0rvbv7m">
+        <di:waypoint x="215" y="117" />
+        <di:waypoint x="260" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0doxe25_di" bpmnElement="Flow_0doxe25">
+        <di:waypoint x="360" y="117" />
+        <di:waypoint x="432" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1847r72_di" bpmnElement="Flow_1847r72">
+        <di:waypoint x="832" y="117" />
+        <di:waypoint x="872" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="179" y="99" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="185" y="142" width="25" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0oidde5_di" bpmnElement="helloWorld" bioc:stroke="black" bioc:fill="white">
+        <dc:Bounds x="260" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_08g1ijs_di" bpmnElement="Gateway_08g1ijs" isMarkerVisible="true">
+        <dc:Bounds x="545" y="92" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="526" y="62" width="89" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_16abx5v_di" bpmnElement="Event_0jgwpvb">
+        <dc:Bounds x="292" y="322" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="271" y="365" width="79" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1okq2sd_di" bpmnElement="Event_0y1j1kj">
+        <dc:Bounds x="432" y="99" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="416" y="142" width="69" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0c49yvo_di" bpmnElement="Event_0c49yvo">
+        <dc:Bounds x="552" y="322" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="543" y="365" width="56" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0pqwb16_di" bpmnElement="Event_0pqwb16">
+        <dc:Bounds x="872" y="99" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="869" y="142" width="43" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1fk4psq_di" bpmnElement="Activity_0ue8hyo">
+        <dc:Bounds x="732" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_16kytz0_di" bpmnElement="Event_0tihfvd">
+        <dc:Bounds x="292" y="139" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="318" y="214" width="64" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
