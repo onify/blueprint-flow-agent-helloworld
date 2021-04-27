@@ -1,6 +1,10 @@
-# Onify Blueprint: Flow and Agent HelloWorld
+![Onify Blueprints](https://files.readme.io/8ba3f14-onify-blueprints-logo.png)
 
 [![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
+
+# Onify Blueprint: Flow and Agent HelloWorld
+
+Here is an example how to execute a Onify Agent task (script) based on PowerShell. This also shows how we can use the result of the script to continue the process via a simple gateway in BPMN. Enjoy!
 
 ![alt text](flow.png "Flow")
 
