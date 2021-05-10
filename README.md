@@ -10,7 +10,7 @@ Here is an example how to execute a Onify Agent task (script) based on PowerShel
 
 ## Requirements
 
-* Onify Hub v2
+* Onify Hub API 2.3.0 or later
 * Onify Flow license
 * Camunda Modeler 4.4 or later 
 * Onify Agent with PowerShell
