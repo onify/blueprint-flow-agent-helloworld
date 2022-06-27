@@ -6,7 +6,7 @@
 
 Here is an example how to execute a Onify Agent task (script) based on PowerShell. This also shows how we can use the result of the script to continue the process via a simple gateway in BPMN. Enjoy!
 
-![alt text](flow.png "Flow")
+![Onify Blueprint: Flow and Agent HelloWorld](blueprint.jpg "Blueprint")
 
 ## Requirements
 
